@@ -1,0 +1,7 @@
+services:
+  api:
+    container_name: kitkat-api
+    build: .
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
