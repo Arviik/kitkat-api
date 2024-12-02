@@ -1,4 +1,4 @@
-package com.example.kitkat.api
+package com.example.kitkat.api.services
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
@@ -59,4 +59,3 @@ class UserService(database: Database) {
     private suspend fun <T> dbQuery(block: suspend () -> T): T =
         newSuspendedTransaction(Dispatchers.IO) { block() }
 }
-

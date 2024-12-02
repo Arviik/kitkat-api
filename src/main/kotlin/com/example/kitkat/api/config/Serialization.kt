@@ -1,4 +1,4 @@
-package com.example.kitkat.api
+package com.example.kitkat.api.config
 
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*

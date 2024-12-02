@@ -1,5 +1,6 @@
 package com.example.kitkat.api
 
+import com.example.kitkat.api.config.configureRouting
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
