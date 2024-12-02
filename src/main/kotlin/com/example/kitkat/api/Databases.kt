@@ -1,19 +1,29 @@
-package com.example
+package com.example.kitkat.api
 
+import com.example.kitkat.api.models.dao.tables.*
+import io.github.cdimascio.dotenv.dotenv
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Application.configureDatabases() {
+    val dotenv = dotenv()
     val database = Database.connect(
-        url = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
-        user = "root",
-        driver = "org.h2.Driver",
-        password = "",
+        url = dotenv["DATABASE_URL"],
+        user = dotenv["DATABASE_USER"],
+        driver = dotenv["DATABASE_DRIVER"],
+        password = dotenv["DATABASE_PASSWORD"],
     )
+    transaction(database) {
+        addLogger(StdOutSqlLogger)
+        SchemaUtils.create(
+            Comments, Followers, Likes, Notifications, SearchQueries, Sounds, Users, Videos
+        )
+    }
     val userService = UserService(database)
     routing {
         // Create user

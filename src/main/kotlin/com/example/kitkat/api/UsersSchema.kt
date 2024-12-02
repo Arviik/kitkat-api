@@ -1,4 +1,4 @@
-package com.example
+package com.example.kitkat.api
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable

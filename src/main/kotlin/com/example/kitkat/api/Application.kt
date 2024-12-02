@@ -1,4 +1,4 @@
-package com.example
+package com.example.kitkat.api
 
 import io.ktor.server.application.*
 

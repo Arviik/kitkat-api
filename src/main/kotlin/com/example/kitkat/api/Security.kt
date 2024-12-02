@@ -1,4 +1,4 @@
-package com.example
+package com.example.kitkat.api
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
