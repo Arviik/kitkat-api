@@ -2,15 +2,14 @@ package com.example.kitkat.api.services
 
 import com.example.kitkat.api.models.dao.CommentDAO
 import com.example.kitkat.api.models.dataclass.Comment
-import com.example.kitkat.api.models.tables.Comments
-import org.jetbrains.exposed.sql.Database
+import com.example.kitkat.api.models.tables.CommentTable
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class CommentService(database: Database): Service<CommentDAO> {
+class CommentService(): Service<CommentDAO> {
     init {
-        transaction(database) {
-            SchemaUtils.create(Comments)
+        transaction {
+            SchemaUtils.create(CommentTable)
         }
     }
 

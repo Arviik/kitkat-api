@@ -10,7 +10,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 @Serializable
 data class ExposedUser(val name: String, val age: Int)
 
-class UserService(database: Database) {
+class UserService {
     object Users : Table() {
         val id = integer("id").autoIncrement()
         val name = varchar("name", length = 50)
@@ -20,7 +20,7 @@ class UserService(database: Database) {
     }
 
     init {
-        transaction(database) {
+        transaction {
             SchemaUtils.create(Users)
         }
     }
