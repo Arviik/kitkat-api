@@ -1,48 +1,75 @@
 package com.example.kitkat.api.routes
 
-import com.example.kitkat.api.config.Config
-import com.example.kitkat.api.models.dao.CommentDAO
-import com.example.kitkat.api.services.CommentService
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.Application
-import io.ktor.server.request.receive
-import io.ktor.server.response.respond
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.put
-import io.ktor.server.routing.routing
+import com.example.kitkat.api.models.dataclass.Comment
+import com.example.kitkat.api.models.repository.CommentRepository
+import io.ktor.http.*
+import io.ktor.serialization.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 
-fun Application.configureCommentRoutes() {
-    val commentService = CommentService(Config.database)
+fun Application.configureCommentRoutes(repository: CommentRepository) {
     routing {
-        post("/comments") {
-            val comment = call.receive<CommentDAO>()
-            val id = commentService.create(comment)
-            call.respond(HttpStatusCode.Created, id)
-        }
-
-        get("/comments/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid Id")
-            val comment = commentService.read(id)
-            if (comment != null) {
-                call.respond(HttpStatusCode.OK, comment)
-            } else {
-                call.respond(HttpStatusCode.NotFound)
+        route("/comments") {
+            get {
+                val comments = repository.all()
+                call.respond(comments)
             }
-        }
 
-        put("/comments/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw java.lang.IllegalArgumentException("Invalid Id")
-            val comment = call.receive<CommentDAO>()
-            commentService.update(id, comment)
-            call.respond(HttpStatusCode.OK)
-        }
+            get("/{id}") {
+                val id = call.parameters["id"]
+                if (id == null) {
+                    call.respond(HttpStatusCode.BadRequest)
+                    return@get
+                }
 
-        delete("/comments/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw java.lang.IllegalArgumentException("Invalid Id")
-            commentService.delete(id)
-            call.respond(HttpStatusCode.OK)
+                val comment = repository.byId(id.toInt())
+                if (comment == null) {
+                    call.respond(HttpStatusCode.NotFound)
+                    return@get
+                }
+
+                call.respond(comment)
+            }
+
+            post {
+                try {
+                    val comment = call.receive<Comment>()
+                    repository.add(comment)
+                    call.respond(HttpStatusCode.NoContent)
+                } catch (ex: IllegalStateException) {
+                    println(ex.message)
+                    call.respond(HttpStatusCode.BadRequest)
+                } catch (ex: JsonConvertException) {
+                    println(ex.message)
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+            }
+
+            put("/{id}") {
+                val id = call.parameters["id"]
+                if (id == null) {
+                    call.respond(HttpStatusCode.BadRequest)
+                    return@put
+                }
+
+
+            }
+
+            delete("/{id}") {
+                val id = call.parameters["id"]
+                if (id == null) {
+                    call.respond(HttpStatusCode.BadRequest)
+                    return@delete
+                }
+
+                if (repository.remove(id.toInt())) {
+                    call.respond(HttpStatusCode.NoContent)
+                } else {
+                    call.respond(HttpStatusCode.NotFound)
+                }
+            }
         }
     }
 }
