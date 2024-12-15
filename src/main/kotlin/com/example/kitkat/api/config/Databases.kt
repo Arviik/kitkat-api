@@ -17,7 +17,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 fun Application.configureDatabases() {
     transaction(Config.database) {
         addLogger(StdOutSqlLogger)
-        SchemaUtils.create(
+        SchemaUtils.createMissingTablesAndColumns(
             Comments, Followers, Likes, Notifications, SearchQueries, Sounds, Users, Videos
         )
     }

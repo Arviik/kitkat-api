@@ -13,5 +13,4 @@ object Videos : IntIdTable() {
     val commentCount = integer("comment_count")
     val createdAt = timestamp("created_at")
     val isPublic = bool("is_public")
-    val sound = reference("sound", Sounds)
 }

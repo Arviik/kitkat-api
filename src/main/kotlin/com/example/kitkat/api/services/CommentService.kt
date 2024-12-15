@@ -42,11 +42,13 @@ class CommentService(database: Database): Service<CommentDAO> {
         CommentDAO.findById(id)?.delete()
     }
 
-    fun daoToModel(dao: CommentDAO) = Comment(
-        dao.author.name,
+    fun daoToModel(dao: CommentDAO) = dao.author.name?.let {
+        Comment(
+            it,
         dao.video.videoUrl,
         dao.text,
         dao.createdAt.toString(),
         dao.likesCount
     )
+    }
 }

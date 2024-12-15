@@ -17,5 +17,4 @@ class VideoDAO(id: EntityID<Int>) : IntEntity(id) {
     var commentCount by Videos.commentCount
     var createdAt by Videos.createdAt
     var isPublic by Videos.isPublic
-    var sound by SoundDAO referencedOn Videos.sound
 }

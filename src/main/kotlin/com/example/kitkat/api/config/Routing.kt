@@ -1,7 +1,6 @@
 package com.example.kitkat.api.config
 
-import com.example.kitkat.api.routes.configureCommentRoutes
-import com.example.kitkat.api.routes.configureUserRoutes
+import com.example.kitkat.api.routes.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -14,4 +13,7 @@ fun Application.configureRouting() {
     }
     configureUserRoutes()
     configureCommentRoutes()
+    configureVideoRoutes()
+    configureFollowRoutes()
+    configureAuthRoutes()
 }
