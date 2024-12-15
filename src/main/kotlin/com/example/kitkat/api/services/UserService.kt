@@ -8,6 +8,7 @@ import com.example.kitkat.api.models.dataclass.UserWithoutPasswordDTO
 import com.example.kitkat.api.models.tables.Followers
 import com.example.kitkat.api.models.tables.UserFollowers
 import com.example.kitkat.api.models.tables.Users
+import com.toxicbakery.bcrypt.Bcrypt
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -28,7 +29,7 @@ class UserService(private val database: Database) {
         Users.insertAndGetId {
             it[name] = userDTO.name ?: "Unknown"
             it[email] = userDTO.email
-            it[passwordHash] = userDTO.passwordHash
+            it[passwordHash] = Bcrypt.hash(userDTO.passwordHash, 12).contentToString()
             it[profilePictureUrl] = userDTO.profilePictureUrl
             it[bio] = userDTO.bio
             it[followersCount] = userDTO.followersCount ?: 0
@@ -166,7 +167,7 @@ class UserService(private val database: Database) {
     suspend fun authenticate(email: String, password: String): UserDAO? = dbQuery {
         UserDAO.find { Users.email eq email }
             .firstOrNull()
-            ?.takeIf { it.passwordHash == password } // gerer la hashage plus tard
+            ?.takeIf { Bcrypt.verify(password, it.passwordHash.toByteArray()) }
     }
 
 
