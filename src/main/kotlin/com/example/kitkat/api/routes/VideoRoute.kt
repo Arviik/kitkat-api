@@ -25,6 +25,11 @@ fun Application.configureVideoRoutes() {
             call.respond(HttpStatusCode.Created, mapOf("id" to id))
         }
 
+        get("/videos-with-authors") {
+            val videosWithAuthors = videoService.getAllVideosWithAuthors()
+            call.respond(HttpStatusCode.OK, videosWithAuthors)
+        }
+
         get("/videos/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
             val video = id?.let { videoService.read(it) }

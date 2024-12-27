@@ -15,3 +15,8 @@ data class VideoDTO(
     val createdAt: String,
     val isPublic: Boolean,
 )
+
+data class VideoWithAuthor(
+    val first: VideoDTO,
+    val second: UserWithoutPasswordDTO
+)

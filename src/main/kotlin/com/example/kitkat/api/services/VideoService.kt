@@ -2,7 +2,10 @@ package com.example.kitkat.api.services
 
 import com.example.kitkat.api.models.dao.UserDAO
 import com.example.kitkat.api.models.dao.VideoDAO
+import com.example.kitkat.api.models.dataclass.UserDTO
+import com.example.kitkat.api.models.dataclass.UserWithoutPasswordDTO
 import com.example.kitkat.api.models.dataclass.VideoDTO
+import com.example.kitkat.api.models.tables.Users
 import com.example.kitkat.api.models.tables.Videos
 import kotlinx.coroutines.Dispatchers
 import kotlinx.datetime.Instant
@@ -46,6 +49,34 @@ class VideoService(private val database: Database) {
                 createdAt = it.createdAt.toString(),
                 isPublic = it.isPublic,
             )
+        }
+    }
+    suspend fun getAllVideosWithAuthors(): List<Pair<VideoDTO, UserWithoutPasswordDTO>> = dbQuery {
+        Videos.innerJoin(Users).selectAll().map { row ->
+            val video = VideoDTO(
+                id = row[Videos.id].value,
+                title = row[Videos.title],
+                duration = row[Videos.duration],
+                authorId = row[Videos.author].value,
+                videoUrl = row[Videos.videoUrl],
+                viewCount = row[Videos.viewCount],
+                likeCount = row[Videos.likeCount],
+                commentCount = row[Videos.commentCount],
+                createdAt = row[Videos.createdAt].toString(),
+                isPublic = row[Videos.isPublic],
+            )
+
+            val user = UserWithoutPasswordDTO(
+                id = row[Users.id].value,
+                name = row[Users.name],
+                email = row[Users.email],
+                profilePictureUrl = row[Users.profilePictureUrl],
+                bio = row[Users.bio],
+                followersCount = row[Users.followersCount],
+                followingCount = row[Users.followingCount]
+            )
+
+            video to user
         }
     }
 
