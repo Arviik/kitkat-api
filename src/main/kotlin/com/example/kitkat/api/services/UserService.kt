@@ -1,21 +1,18 @@
 package com.example.kitkat.api.services
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
+import at.favre.lib.crypto.bcrypt.BCrypt
 import com.example.kitkat.api.models.dao.UserDAO
 import com.example.kitkat.api.models.dataclass.UserDTO
 import com.example.kitkat.api.models.dataclass.UserWithoutPasswordDTO
 import com.example.kitkat.api.models.tables.Followers
 import com.example.kitkat.api.models.tables.UserFollowers
 import com.example.kitkat.api.models.tables.Users
-import com.toxicbakery.bcrypt.Bcrypt
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.util.*
 
 class UserService(private val database: Database) {
 
@@ -29,7 +26,7 @@ class UserService(private val database: Database) {
         Users.insertAndGetId {
             it[name] = userDTO.name ?: "Unknown"
             it[email] = userDTO.email
-            it[passwordHash] = Bcrypt.hash(userDTO.passwordHash, 12).contentToString()
+            it[passwordHash] = hashPassword(userDTO.password)
             it[profilePictureUrl] = userDTO.profilePictureUrl
             it[bio] = userDTO.bio
             it[followersCount] = userDTO.followersCount ?: 0
@@ -44,7 +41,7 @@ class UserService(private val database: Database) {
                     id = it[Users.id].value,
                     name = it[Users.name],
                     email = it[Users.email],
-                    passwordHash = it[Users.passwordHash],
+                    password = it[Users.passwordHash],
                     profilePictureUrl = it[Users.profilePictureUrl],
                     bio = it[Users.bio],
                     followersCount = it[Users.followersCount],
@@ -58,7 +55,7 @@ class UserService(private val database: Database) {
         Users.update({ Users.id eq id }) {
             it[name] = userDTO.name ?: "Unknown"
             it[email] = userDTO.email
-            it[passwordHash] = userDTO.passwordHash
+            it[passwordHash] = hashPassword(userDTO.password)
             it[profilePictureUrl] = userDTO.profilePictureUrl
             it[bio] = userDTO.bio
             it[followersCount] = userDTO.followersCount ?: 0
@@ -92,6 +89,7 @@ class UserService(private val database: Database) {
             false
         }
     }
+
     suspend fun listFollowers(userId: Int): List<UserWithoutPasswordDTO> {
         val user = UserDAO.findById(userId) ?: throw IllegalArgumentException("User not found")
         return user.followers.map {
@@ -144,6 +142,7 @@ class UserService(private val database: Database) {
             false
         }
     }
+
     suspend fun getFollowing(userId: Int): List<UserWithoutPasswordDTO> = dbQuery {
         // Trouve tous les followers que l'utilisateur suit
         UserFollowers
@@ -167,10 +166,17 @@ class UserService(private val database: Database) {
     suspend fun authenticate(email: String, password: String): UserDAO? = dbQuery {
         UserDAO.find { Users.email eq email }
             .firstOrNull()
-            ?.takeIf { Bcrypt.verify(password, it.passwordHash.toByteArray()) }
+            ?.takeIf { verifyPassword(password, it.passwordHash) }
     }
-
 
     private suspend fun <T> dbQuery(block: suspend () -> T): T =
         newSuspendedTransaction(Dispatchers.IO, database) { block() }
+
+    private fun hashPassword(password: String): String {
+        return BCrypt.withDefaults().hashToString(12, password.toCharArray())
+    }
+
+    private fun verifyPassword(password: String, passwordHash: String): Boolean {
+        return BCrypt.verifyer().verify(password.toCharArray(), passwordHash).verified
+    }
 }
