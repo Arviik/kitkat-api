@@ -7,12 +7,10 @@ object Config {
     val dotenv = dotenv()
     val database by lazy {
         Database.connect(
-            url = "jdbc:postgresql://database:5432/kitkat",
-            driver = "org.postgresql.Driver",
-            user = "kitkat",
-            password = "kitkat"
-        ).also {
-            println("Database connected successfully: ${it.url}")
-        }
+            url = dotenv["DATABASE_URL"],
+            user = dotenv["DATABASE_USER"],
+            driver = dotenv["DATABASE_DRIVER"],
+            password = dotenv["DATABASE_PASSWORD"],
+        )
     }
 }
