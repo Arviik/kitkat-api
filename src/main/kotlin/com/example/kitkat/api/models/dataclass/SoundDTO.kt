@@ -3,7 +3,7 @@ package com.example.kitkat.api.models.dataclass
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Sound(
+data class SoundDTO(
     val title: String,
     val authorId: Int,
     val duration: Int,

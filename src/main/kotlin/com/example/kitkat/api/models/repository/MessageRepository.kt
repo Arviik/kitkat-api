@@ -3,23 +3,23 @@ package com.example.kitkat.api.models.repository
 import com.example.kitkat.api.models.dao.MessageDAO
 import com.example.kitkat.api.models.dao.UserDAO
 import com.example.kitkat.api.models.dao.ConversationDAO
-import com.example.kitkat.api.models.dataclass.Message
+import com.example.kitkat.api.models.dataclass.MessageDTO
 import com.example.kitkat.api.models.tables.Messages
 import com.example.kitkat.api.services.suspendTransaction
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 
-class MessageRepository : Repository<Message> {
-    override suspend fun all(): List<Message> = suspendTransaction {
+class MessageRepository : Repository<MessageDTO> {
+    override suspend fun all(): List<MessageDTO> = suspendTransaction {
         MessageDAO.all().map(::daoToModel)
     }
 
-    override suspend fun byId(id: Int): Message? = suspendTransaction {
+    override suspend fun byId(id: Int): MessageDTO? = suspendTransaction {
         MessageDAO.find { Messages.id eq id }.firstOrNull()?.let(::daoToModel)
     }
 
-    override suspend fun add(model: Message) {
+    override suspend fun add(model: MessageDTO) {
         val sender = UserDAO.findById(model.senderId) ?: throw IllegalArgumentException("Sender not found")
         val receiver = UserDAO.findById(model.receiverId) ?: throw IllegalArgumentException("Receiver not found")
         val conversation = ConversationDAO.findById(model.conversationId) ?: throw IllegalArgumentException("Conversation not found")
@@ -34,7 +34,7 @@ class MessageRepository : Repository<Message> {
         }
     }
 
-    override suspend fun update(id: Int, model: Message): Boolean = suspendTransaction {
+    override suspend fun update(id: Int, model: MessageDTO): Boolean = suspendTransaction {
         val message = MessageDAO.findById(id) ?: return@suspendTransaction false
         val sender = UserDAO.findById(model.senderId) ?: throw IllegalArgumentException("Sender not found")
         val receiver = UserDAO.findById(model.receiverId) ?: throw IllegalArgumentException("Receiver not found")
@@ -55,7 +55,7 @@ class MessageRepository : Repository<Message> {
         Messages.deleteWhere { Messages.id eq id } > 0
     }
 
-    private fun daoToModel(dao: MessageDAO) = Message(
+    private fun daoToModel(dao: MessageDAO) = MessageDTO(
         senderId = dao.sender.id.value,
         receiverId = dao.receiver.id.value,
         content = dao.content,

@@ -3,7 +3,7 @@ package com.example.kitkat.api.models.repository
 
 import com.example.kitkat.api.models.dao.ConversationDAO
 import com.example.kitkat.api.models.dao.UserDAO
-import com.example.kitkat.api.models.dataclass.Conversation
+import com.example.kitkat.api.models.dataclass.ConversationDTO
 import com.example.kitkat.api.models.tables.ConversationParticipants
 import com.example.kitkat.api.models.tables.Conversations
 import com.example.kitkat.api.services.suspendTransaction
@@ -12,12 +12,12 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.SizedCollection
 
-class ConversationRepository : Repository<Conversation> {
-    override suspend fun all(): List<Conversation> = suspendTransaction {
+class ConversationRepository : Repository<ConversationDTO> {
+    override suspend fun all(): List<ConversationDTO> = suspendTransaction {
         ConversationDAO.all().map(::daoToModel)
     }
 
-    override suspend fun byId(id: Int): Conversation? = suspendTransaction {
+    override suspend fun byId(id: Int): ConversationDTO? = suspendTransaction {
         ConversationDAO
             .find { (Conversations.id eq id) }
             .limit(1)
@@ -25,13 +25,13 @@ class ConversationRepository : Repository<Conversation> {
             .firstOrNull()
     }
 
-    suspend fun getByUserId(userId: Int): List<Conversation> = suspendTransaction {
+    suspend fun getByUserId(userId: Int): List<ConversationDTO> = suspendTransaction {
         ConversationDAO.find {
             ConversationParticipants.user eq userId
         }.map(::daoToModel)
     }
 
-    override suspend fun add(model: Conversation) {
+    override suspend fun add(model: ConversationDTO) {
         val participants = model.participantIds.map {
             UserDAO.findById(it) ?: throw IllegalArgumentException("User not found")
         }
@@ -42,7 +42,7 @@ class ConversationRepository : Repository<Conversation> {
         }
     }
 
-    override suspend fun update(id: Int, model: Conversation): Boolean = suspendTransaction {
+    override suspend fun update(id: Int, model: ConversationDTO): Boolean = suspendTransaction {
         val participants = model.participantIds.map {
             UserDAO.findById(it) ?: throw IllegalArgumentException("User not found")
         }
@@ -62,7 +62,7 @@ class ConversationRepository : Repository<Conversation> {
         rowsDeleted == 1
     }
 
-    fun daoToModel(dao: ConversationDAO) = Conversation(
+    fun daoToModel(dao: ConversationDAO) = ConversationDTO(
         dao.id.value,
         dao.participants.map { it.id.value },
         dao.createdAt.toString()
