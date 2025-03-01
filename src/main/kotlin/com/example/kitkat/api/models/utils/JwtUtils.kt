@@ -10,6 +10,7 @@ fun generateJWT(user: UserDAO): String {
     return JWT.create()
         .withAudience(Config.AUDIENCE)
         .withIssuer(Config.ISSUER)
+        .withClaim("id", user.id.value)
         .withClaim("username", user.name)
         .withClaim("email", user.email)
         .withExpiresAt(Date(System.currentTimeMillis() + 3600 * 1000))

@@ -5,6 +5,7 @@ import com.example.kitkat.api.models.dataclass.CommentDTO
 import com.example.kitkat.api.services.CommentService
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.auth.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
@@ -14,7 +15,9 @@ fun Application.configureCommentRoutes() {
 
     routing {
         post("/comments") {
-            val commentDTO = call.receive<CommentDTO>()
+            val userId = call.principal<UserIdPrincipal>()?.name?.toIntOrNull()
+                ?: return@post call.respond(HttpStatusCode.Unauthorized, "Token invalide")
+            val commentDTO = call.receive<CommentDTO>().copy(authorId = userId)
             val id = commentService.create(commentDTO)
 
             val newComment = commentService.read(id)

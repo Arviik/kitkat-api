@@ -19,7 +19,6 @@ fun Application.configureRouting() {
     configureVideoRoutes()
     configureFollowRoutes()
     configureAuthRoutes()
-    configureCommentRoutes()
     configureConversationRoutes(ConversationRepository())
     configureMessageRoutes(MessageRepository())
 }
