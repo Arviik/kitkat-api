@@ -1,7 +1,7 @@
 // ConversationRoutes.kt
 package com.example.kitkat.api.routes
 
-import com.example.kitkat.api.models.dataclass.Conversation
+import com.example.kitkat.api.models.dataclass.ConversationDTO
 import com.example.kitkat.api.models.repository.ConversationRepository
 import io.ktor.http.*
 import io.ktor.serialization.*
@@ -47,7 +47,7 @@ fun Application.configureConversationRoutes(repository: ConversationRepository) 
 
             post {
                 try {
-                    val conversation = call.receive<Conversation>()
+                    val conversation = call.receive<ConversationDTO>()
                     repository.add(conversation)
                     call.respond(HttpStatusCode.NoContent)
                 } catch (ex: IllegalStateException) {
@@ -65,7 +65,7 @@ fun Application.configureConversationRoutes(repository: ConversationRepository) 
                 }
 
                 try {
-                    val conversation = call.receive<Conversation>()
+                    val conversation = call.receive<ConversationDTO>()
                     val updated = repository.update(id, conversation)
                     if (updated) {
                         call.respond(HttpStatusCode.NoContent)

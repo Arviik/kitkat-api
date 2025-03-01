@@ -1,6 +1,6 @@
 package com.example.kitkat.api.routes
 
-import com.example.kitkat.api.models.dataclass.Message
+import com.example.kitkat.api.models.dataclass.MessageDTO
 import com.example.kitkat.api.models.repository.MessageRepository
 import io.ktor.http.*
 import io.ktor.serialization.*
@@ -35,7 +35,7 @@ fun Application.configureMessageRoutes(repository: MessageRepository) {
 
             post {
                 try {
-                    val message = call.receive<Message>()
+                    val message = call.receive<MessageDTO>()
                     repository.add(message)
                     call.respond(HttpStatusCode.NoContent)
                 } catch (ex: IllegalStateException) {
@@ -55,7 +55,7 @@ fun Application.configureMessageRoutes(repository: MessageRepository) {
                 }
 
                 try {
-                    val message = call.receive<Message>()
+                    val message = call.receive<MessageDTO>()
                     val updated = repository.update(id, message)
                     if (updated) {
                         call.respond(HttpStatusCode.NoContent)

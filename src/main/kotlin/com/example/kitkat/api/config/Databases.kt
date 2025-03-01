@@ -14,7 +14,7 @@ fun Application.configureDatabases() {
         addLogger(StdOutSqlLogger)
         SchemaUtils.create(
             Comments, Followers,
-            LikeTable,
+            Likes,
             Notifications,
             SearchQueries, Sounds,
             Users, Videos,
