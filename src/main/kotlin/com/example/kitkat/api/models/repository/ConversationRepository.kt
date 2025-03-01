@@ -6,11 +6,12 @@ import com.example.kitkat.api.models.dao.UserDAO
 import com.example.kitkat.api.models.dataclass.ConversationDTO
 import com.example.kitkat.api.models.tables.ConversationParticipants
 import com.example.kitkat.api.models.tables.Conversations
+import com.example.kitkat.api.models.tables.Messages
+import com.example.kitkat.api.models.tables.Users
 import com.example.kitkat.api.services.suspendTransaction
 import kotlinx.datetime.Instant
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.SizedCollection
 
 class ConversationRepository : Repository<ConversationDTO> {
     override suspend fun all(): List<ConversationDTO> = suspendTransaction {
@@ -26,10 +27,32 @@ class ConversationRepository : Repository<ConversationDTO> {
     }
 
     suspend fun getByUserId(userId: Int): List<ConversationDTO> = suspendTransaction {
-        ConversationDAO.find {
-            ConversationParticipants.user eq userId
-        }.map(::daoToModel)
+        val conversations = Conversations
+            .innerJoin(ConversationParticipants, { Conversations.id }, { ConversationParticipants.conversation })
+            .leftJoin(Messages, { Conversations.id }, { Messages.conversation })
+            .selectAll()
+            .where { ConversationParticipants.user eq userId }
+            .map { row ->
+                val conversationId = row[Conversations.id].value
+
+                val otherParticipantNames = ConversationParticipants
+                    .innerJoin(Users, { Users.id }, { ConversationParticipants.user })
+                    .selectAll()
+                    .where { (ConversationParticipants.conversation eq conversationId) and (ConversationParticipants.user neq userId) }
+                    .map { it[Users.name] }
+
+                ConversationDTO(
+                    id = conversationId,
+                    createdAt = row[Conversations.createdAt].toString(),
+                    participantIds = listOf(row[ConversationParticipants.user].value),
+                    lastMessage = row[Messages.content],
+                    username = otherParticipantNames.joinToString(separator = ", "),
+                )
+            }
+
+        conversations
     }
+
 
     override suspend fun add(model: ConversationDTO) {
         val participants = model.participantIds.map {
@@ -65,6 +88,8 @@ class ConversationRepository : Repository<ConversationDTO> {
     fun daoToModel(dao: ConversationDAO) = ConversationDTO(
         dao.id.value,
         dao.participants.map { it.id.value },
-        dao.createdAt.toString()
+        dao.createdAt.toString(),
+        null,
+        null
     )
 }

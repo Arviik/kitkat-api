@@ -6,5 +6,7 @@ import kotlinx.serialization.Serializable
 data class ConversationDTO(
     val id: Int,
     val participantIds: List<Int>,
-    val createdAt: String
+    val createdAt: String,
+    val lastMessage: String?,
+    val username: String?,
 )

@@ -19,6 +19,7 @@ fun Application.configureDatabases() {
             SearchQueries, Sounds,
             Users, Videos,
             Conversations,
+            ConversationParticipants,
             Messages
         )
     }
