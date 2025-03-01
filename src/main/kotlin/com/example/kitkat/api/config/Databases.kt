@@ -21,7 +21,16 @@ fun Application.configureDatabases() {
     transaction {
         addLogger(StdOutSqlLogger)
         SchemaUtils.create(
-            CommentTable, FollowerTable, LikeTable, NotificationTable, SearchQueryTable, SoundTable, UserTable, VideoTable
+            CommentTable,
+            FollowerTable,
+            LikeTable,
+            NotificationTable,
+            SearchQueryTable,
+            SoundTable,
+            UserTable,
+            VideoTable,
+            ConversationTable,
+            MessageTable
         )
     }
 }
