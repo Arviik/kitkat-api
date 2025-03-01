@@ -18,8 +18,8 @@ fun Application.configureDatabases() {
             Notifications,
             SearchQueries, Sounds,
             Users, Videos,
-            ConversationTable,
-            MessageTable
+            Conversations,
+            Messages
         )
     }
 }

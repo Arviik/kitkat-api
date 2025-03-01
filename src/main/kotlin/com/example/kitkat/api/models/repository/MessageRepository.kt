@@ -4,7 +4,7 @@ import com.example.kitkat.api.models.dao.MessageDAO
 import com.example.kitkat.api.models.dao.UserDAO
 import com.example.kitkat.api.models.dao.ConversationDAO
 import com.example.kitkat.api.models.dataclass.Message
-import com.example.kitkat.api.models.tables.MessageTable
+import com.example.kitkat.api.models.tables.Messages
 import com.example.kitkat.api.services.suspendTransaction
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -16,7 +16,7 @@ class MessageRepository : Repository<Message> {
     }
 
     override suspend fun byId(id: Int): Message? = suspendTransaction {
-        MessageDAO.find { MessageTable.id eq id }.firstOrNull()?.let(::daoToModel)
+        MessageDAO.find { Messages.id eq id }.firstOrNull()?.let(::daoToModel)
     }
 
     override suspend fun add(model: Message) {
@@ -52,7 +52,7 @@ class MessageRepository : Repository<Message> {
     }
 
     override suspend fun remove(id: Int): Boolean = suspendTransaction {
-        MessageTable.deleteWhere { MessageTable.id eq id } > 0
+        Messages.deleteWhere { Messages.id eq id } > 0
     }
 
     private fun daoToModel(dao: MessageDAO) = Message(

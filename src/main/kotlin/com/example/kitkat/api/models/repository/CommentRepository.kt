@@ -11,7 +11,7 @@ import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 
-class CommentRepository() : Repository<Comment> {
+class CommentRepository : Repository<Comment> {
     override suspend fun all(): List<Comment> = suspendTransaction {
         CommentDAO.all().map(::daoToModel)
     }
@@ -38,8 +38,8 @@ class CommentRepository() : Repository<Comment> {
     }
 
     override suspend fun update(id: Int, model: Comment): Boolean = suspendTransaction {
-        val user = UserDAO.findById(model.authorId) ?: throw IllegalArgumentException("Not found")
-        val video = VideoDAO.findById(model.videoId) ?: throw IllegalArgumentException("Not found")
+        val user = UserDAO.findById(model.author) ?: throw IllegalArgumentException("Not found")
+        val video = VideoDAO.findById(model.video) ?: throw IllegalArgumentException("Not found")
 
         val rowsUpdated = CommentDAO.findByIdAndUpdate(id) {
             it.author = user
@@ -52,15 +52,15 @@ class CommentRepository() : Repository<Comment> {
     }
 
     override suspend fun remove(id: Int): Boolean = suspendTransaction {
-        val rowsDeleted = CommentTable.deleteWhere {
-            CommentTable.id eq id
+        val rowsDeleted = Comments.deleteWhere {
+            Comments.id eq id
         }
         rowsDeleted == 1
     }
 
     fun daoToModel(dao: CommentDAO) = Comment(
-        dao.author.id.value,
-        dao.video.id.value,
+        dao.author.id.value.toString(),
+        dao.video.id.value.toString(),
         dao.text,
         dao.createdAt.toString(),
         dao.likesCount

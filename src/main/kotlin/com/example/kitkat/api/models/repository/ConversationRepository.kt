@@ -4,8 +4,8 @@ package com.example.kitkat.api.models.repository
 import com.example.kitkat.api.models.dao.ConversationDAO
 import com.example.kitkat.api.models.dao.UserDAO
 import com.example.kitkat.api.models.dataclass.Conversation
-import com.example.kitkat.api.models.tables.ConversationTable
-import com.example.kitkat.api.models.tables.ConversationParticipantTable
+import com.example.kitkat.api.models.tables.ConversationParticipants
+import com.example.kitkat.api.models.tables.Conversations
 import com.example.kitkat.api.services.suspendTransaction
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -19,7 +19,7 @@ class ConversationRepository : Repository<Conversation> {
 
     override suspend fun byId(id: Int): Conversation? = suspendTransaction {
         ConversationDAO
-            .find { (ConversationTable.id eq id) }
+            .find { (Conversations.id eq id) }
             .limit(1)
             .map(::daoToModel)
             .firstOrNull()
@@ -27,7 +27,7 @@ class ConversationRepository : Repository<Conversation> {
 
     suspend fun getByUserId(userId: Int): List<Conversation> = suspendTransaction {
         ConversationDAO.find {
-            ConversationParticipantTable.user eq userId
+            ConversationParticipants.user eq userId
         }.map(::daoToModel)
     }
 
@@ -55,9 +55,9 @@ class ConversationRepository : Repository<Conversation> {
     }
 
     override suspend fun remove(id: Int): Boolean = suspendTransaction {
-        ConversationParticipantTable.deleteWhere { ConversationParticipantTable.conversation eq id }
-        val rowsDeleted = ConversationTable.deleteWhere {
-            ConversationTable.id eq id
+        ConversationParticipants.deleteWhere { ConversationParticipants.conversation eq id }
+        val rowsDeleted = Conversations.deleteWhere {
+            Conversations.id eq id
         }
         rowsDeleted == 1
     }
