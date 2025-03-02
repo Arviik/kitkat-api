@@ -1,6 +1,5 @@
 package com.example.kitkat.api.routes
 
-import com.example.kitkat.api.config.Config
 import com.example.kitkat.api.models.dataclass.CommentDTO
 import com.example.kitkat.api.services.CommentService
 import io.ktor.http.HttpStatusCode
@@ -11,7 +10,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 
 fun Application.configureCommentRoutes() {
-    val commentService = CommentService(Config.database)
+    val commentService = CommentService()
 
     routing {
         post("/comments") {

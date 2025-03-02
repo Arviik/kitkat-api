@@ -6,13 +6,12 @@ import com.example.kitkat.api.models.dao.VideoDAO
 import com.example.kitkat.api.models.dataclass.CommentDTO
 import com.example.kitkat.api.models.tables.Comments
 import kotlinx.datetime.Instant
-import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class CommentService(private val database: Database) {
+class CommentService() {
 
     // 🔹 Créer un commentaire
-    fun create(commentDTO: CommentDTO): Int = transaction(database) {
+    fun create(commentDTO: CommentDTO): Int = transaction() {
         CommentDAO.new {
             author = UserDAO.findById(commentDTO.authorId)
                 ?: throw IllegalArgumentException("Author not found")
@@ -27,7 +26,7 @@ class CommentService(private val database: Database) {
     }
 
     // 🔹 Récupérer un commentaire par son ID
-    fun read(id: Int): CommentDTO? = transaction(database) {
+    fun read(id: Int): CommentDTO? = transaction() {
         CommentDAO.findById(id)?.let { comment ->
             CommentDTO(
                 id = comment.id.value,
@@ -43,7 +42,7 @@ class CommentService(private val database: Database) {
 
 
     // 🔹 Récupérer tous les commentaires liés à une vidéo avec le nom de l’auteur
-    fun getCommentsWithAuthor(videoId: Int): List<CommentDTO> = transaction(database) {
+    fun getCommentsWithAuthor(videoId: Int): List<CommentDTO> = transaction() {
         CommentDAO.find { Comments.video eq videoId }
             .map { comment ->
                 val authorName = comment.author.name // ✅ Récupération du nom de l’auteur
@@ -52,7 +51,7 @@ class CommentService(private val database: Database) {
     }
 
     // 🔹 Mettre à jour un commentaire
-    fun update(id: Int, commentDTO: CommentDTO) = transaction(database) {
+    fun update(id: Int, commentDTO: CommentDTO) = transaction() {
         val comment = CommentDAO.findById(id) ?: throw IllegalArgumentException("Comment not found")
         comment.apply {
             text = commentDTO.text
@@ -62,7 +61,7 @@ class CommentService(private val database: Database) {
     }
 
     // 🔹 Supprimer un commentaire
-    fun delete(id: Int) = transaction(database) {
+    fun delete(id: Int) = transaction() {
         CommentDAO.findById(id)?.delete()
     }
 

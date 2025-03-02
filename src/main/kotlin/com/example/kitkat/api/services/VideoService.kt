@@ -2,7 +2,6 @@ package com.example.kitkat.api.services
 
 import com.example.kitkat.api.models.dao.UserDAO
 import com.example.kitkat.api.models.dao.VideoDAO
-import com.example.kitkat.api.models.dataclass.UserDTO
 import com.example.kitkat.api.models.dataclass.UserWithoutPasswordDTO
 import com.example.kitkat.api.models.dataclass.VideoDTO
 import com.example.kitkat.api.models.tables.Users
@@ -13,10 +12,10 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class VideoService(private val database: Database) {
+class VideoService() {
 
     init {
-        transaction(database) {
+        transaction() {
             SchemaUtils.create(Videos)
         }
     }

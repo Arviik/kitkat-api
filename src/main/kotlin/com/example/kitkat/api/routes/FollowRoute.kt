@@ -4,11 +4,10 @@ import io.ktor.http.*
 import io.ktor.server.application.Application
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
-import com.example.kitkat.api.config.Config
 import io.ktor.server.response.respond
 
 fun Application.configureFollowRoutes() {
-    val userService = UserService(Config.database)
+    val userService = UserService()
 
     routing {
         post("/users/{id}/follow") {
