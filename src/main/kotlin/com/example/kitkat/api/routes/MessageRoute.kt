@@ -33,6 +33,17 @@ fun Application.configureMessageRoutes(repository: MessageRepository) {
                 call.respond(message)
             }
 
+            get("conversation/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull()
+                if (id == null) {
+                    call.respond(HttpStatusCode.BadRequest)
+                    return@get
+                }
+
+                val message = repository.byConversationId(id)
+                call.respond(message)
+            }
+
             post {
                 try {
                     val message = call.receive<MessageDTO>()

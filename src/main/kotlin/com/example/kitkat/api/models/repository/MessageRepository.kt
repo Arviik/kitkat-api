@@ -9,6 +9,7 @@ import com.example.kitkat.api.services.suspendTransaction
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.selectAll
 
 class MessageRepository : Repository<MessageDTO> {
     override suspend fun all(): List<MessageDTO> = suspendTransaction {
@@ -17,6 +18,22 @@ class MessageRepository : Repository<MessageDTO> {
 
     override suspend fun byId(id: Int): MessageDTO? = suspendTransaction {
         MessageDAO.find { Messages.id eq id }.firstOrNull()?.let(::daoToModel)
+    }
+
+    suspend fun byConversationId(conversationId: Int): List<MessageDTO> = suspendTransaction {
+        Messages
+            .selectAll()
+            .where { Messages.conversation eq conversationId }
+            .map {
+                MessageDTO(
+                    senderId = it[Messages.sender].value,
+                    receiverId = it[Messages.receiver].value,
+                    content = it[Messages.content],
+                    createdAt = it[Messages.createdAt].toString(),
+                    conversationId = it[Messages.conversation].value,
+                    isSystemMessage = it[Messages.isSystemMessage],
+                )
+            }
     }
 
     override suspend fun add(model: MessageDTO) {
