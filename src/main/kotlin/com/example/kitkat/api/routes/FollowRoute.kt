@@ -32,6 +32,21 @@ fun Application.configureFollowRoutes() {
             }
         }
 
+        get("/users/{id}/is-following/{followerId}") {
+            val userId = call.parameters["id"]?.toIntOrNull()
+            val followerId = call.parameters["followerId"]?.toIntOrNull()
+
+            if (userId == null || followerId == null) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid user IDs.")
+                return@get
+            }
+
+            val isFollowing = userService.isFollowing(userId, followerId)
+
+            call.respond(HttpStatusCode.OK, mapOf("isFollowing" to isFollowing))
+        }
+
+
         // Liste des abonnés
         get("/users/{id}/followers") {
             val userId = call.parameters["id"]?.toIntOrNull()

@@ -5,7 +5,6 @@ import com.example.kitkat.api.models.dao.UserDAO
 import com.example.kitkat.api.models.dataclass.UserDTO
 import com.example.kitkat.api.models.dataclass.UserWithoutPasswordDTO
 import com.example.kitkat.api.models.tables.Followers
-import com.example.kitkat.api.models.tables.UserFollowers
 import com.example.kitkat.api.models.tables.Users
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.*
@@ -67,28 +66,33 @@ class UserService() {
         Users.deleteWhere { Users.id eq id } > 0
     }
 
-    suspend fun followUser(userId: Int, followerId: Int): Boolean = dbQuery {
-        val user = UserDAO.findById(userId)
-        val follower = UserDAO.findById(followerId)
+    fun followUser(userId: Int, followerId: Int) = transaction {
+        val alreadyFollowing = Followers
+            .selectAll().where { (Followers.followed eq userId) and (Followers.follower eq followerId) }
+            .count() > 0
 
-        if (user != null && follower != null && userId != followerId) {
-            // Ajouter la relation dans la table de liaison (many-to-many)
+        if (!alreadyFollowing) {
             Followers.insert {
-                it[Followers.followed] = user.id
-                it[Followers.follower] = follower.id
+                it[followed] = userId
+                it[follower] = followerId
             }
 
-            // Incrémenter les compteurs
             Users.update({ Users.id eq userId }) {
-                with(SqlExpressionBuilder) {
-                    it[followersCount] = Users.followersCount + 1
-                }
+                with(SqlExpressionBuilder) { it.update(followersCount, followersCount + 1) }
             }
-            true
-        } else {
-            false
+            Users.update({ Users.id eq followerId }) {
+                with(SqlExpressionBuilder) { it.update(followingCount, followingCount + 1) }
+            }
         }
     }
+
+    fun isFollowing(userId: Int, followerId: Int): Boolean = transaction {
+        Followers
+            .selectAll().where { (Followers.followed eq userId) and (Followers.follower eq followerId) }
+            .count() > 0
+    }
+
+
 
     suspend fun listFollowers(userId: Int): List<UserWithoutPasswordDTO> {
         val user = UserDAO.findById(userId) ?: throw IllegalArgumentException("User not found")
@@ -126,29 +130,30 @@ class UserService() {
         }
     }
 
-    suspend fun removeFollower(userId: Int, followerId: Int): Boolean = dbQuery {
-        val userExists = Users.selectAll().where { Users.id eq userId }.count() > 0
-        val followerExists = Users.selectAll().where { Users.id eq followerId }.count() > 0
+    fun removeFollower(userId: Int, followerId: Int) = transaction {
+        val existingFollow = Followers
+            .selectAll().where { (Followers.followed eq userId) and (Followers.follower eq followerId) }
+            .count() > 0
 
-        if (userExists && followerExists && userId != followerId) {
+        if (existingFollow) {
+            Followers.deleteWhere { (Followers.followed eq userId) and (Followers.follower eq followerId) }
+
             Users.update({ Users.id eq userId }) {
-                it[followersCount] = Users.followersCount + 1
+                with(SqlExpressionBuilder) { it.update(followersCount, followersCount - 1) }
             }
             Users.update({ Users.id eq followerId }) {
-                it[followingCount] = Users.followingCount + 1
+                with(SqlExpressionBuilder) { it.update(followingCount, followingCount - 1) }
             }
-            true
-        } else {
-            false
         }
     }
 
+
     suspend fun getFollowing(userId: Int): List<UserWithoutPasswordDTO> = dbQuery {
         // Trouve tous les followers que l'utilisateur suit
-        UserFollowers
-            .selectAll().where { UserFollowers.user eq userId }
+        Followers
+            .selectAll().where { Followers.followed eq userId }
             .mapNotNull { row ->
-                val followingId = row[UserFollowers.follower]
+                val followingId = row[Followers.follower]
                 UserDAO.findById(followingId)?.let { user ->
                     UserWithoutPasswordDTO(
                         id = user.id.value,
