@@ -1,9 +1,12 @@
 package com.example.kitkat.api.routes
 
+import com.example.kitkat.api.models.dao.UserDAO
 import com.example.kitkat.api.services.UserService
 import com.example.kitkat.api.models.dataclass.UserDTO
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.delete
@@ -11,6 +14,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.routing
+import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Application.configureUserRoutes() {
     val userService = UserService()
@@ -31,6 +35,30 @@ fun Application.configureUserRoutes() {
                 call.respond(HttpStatusCode.NotFound)
             }
         }
+        put("/users/update-profile-picture") {
+            val principal = call.principal<JWTPrincipal>()
+                ?: return@put call.respond(HttpStatusCode.Unauthorized, "Token invalide")
+
+            val userId = principal.payload.getClaim("id").asInt()
+            val imageUrl = call.receive<String>()
+
+            var success = false
+
+            transaction {
+                val user = UserDAO.findById(userId)
+                if (user != null) {
+                    user.profilePictureUrl = imageUrl
+                    success = true
+                }
+            }
+
+            if (success) {
+                call.respond(HttpStatusCode.OK, "Image mise à jour avec succès")
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Utilisateur introuvable")
+            }
+        }
+
 
         put("/users/{id}") {
             val id = call.parameters["id"]?.toIntOrNull() ?: return@put call.respond(HttpStatusCode.BadRequest)
