@@ -29,28 +29,44 @@ class ConversationRepository : Repository<ConversationDTO> {
     suspend fun getByUserId(userId: Int): List<ConversationDTO> = suspendTransaction {
         val conversations = Conversations
             .innerJoin(ConversationParticipants, { Conversations.id }, { ConversationParticipants.conversation })
-            .leftJoin(Messages, { Conversations.id }, { Messages.conversation })
             .selectAll()
             .where { ConversationParticipants.user eq userId }
             .map { row ->
                 val conversationId = row[Conversations.id].value
 
+                // Récupère les autres participants
                 val otherParticipantNames = ConversationParticipants
                     .innerJoin(Users, { Users.id }, { ConversationParticipants.user })
                     .selectAll()
-                    .where { (ConversationParticipants.conversation eq conversationId) and (ConversationParticipants.user neq userId) }
+                    .where {
+                        (ConversationParticipants.conversation eq conversationId) and
+                                (ConversationParticipants.user neq userId)
+                    }
                     .map { it[Users.name] }
+
+                // Récupère uniquement le dernier message via une sous-requête
+                val lastMessageData = Messages
+                    .innerJoin(Users, { Users.id }, { Messages.sender })
+                    .selectAll()
+                    .where { Messages.conversation eq conversationId }
+                    .orderBy(Messages.createdAt, SortOrder.DESC)
+                    .limit(1)
+                    .firstOrNull()
+
+                val lastMessageContent = lastMessageData?.get(Messages.content)
+                val lastMessageSender = lastMessageData?.get(Users.name)
 
                 ConversationDTO(
                     id = conversationId,
                     createdAt = row[Conversations.createdAt].toString(),
                     participantIds = listOf(row[ConversationParticipants.user].value),
-                    lastMessage = row[Messages.content],
-                    username = otherParticipantNames.joinToString(separator = ", "),
+                    lastMessage = "${lastMessageSender}: $lastMessageContent",
+                    username = otherParticipantNames.joinToString(separator = ", ")
                 )
             }
 
         conversations
+
     }
 
 

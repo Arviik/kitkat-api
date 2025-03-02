@@ -6,10 +6,12 @@ import com.example.kitkat.api.models.dao.ConversationDAO
 import com.example.kitkat.api.models.dataclass.MessageDTO
 import com.example.kitkat.api.models.tables.Messages
 import com.example.kitkat.api.services.suspendTransaction
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 
 class MessageRepository : Repository<MessageDTO> {
     override suspend fun all(): List<MessageDTO> = suspendTransaction {
@@ -37,17 +39,20 @@ class MessageRepository : Repository<MessageDTO> {
     }
 
     override suspend fun add(model: MessageDTO) {
-        val sender = UserDAO.findById(model.senderId) ?: throw IllegalArgumentException("Sender not found")
-        val receiver = UserDAO.findById(model.receiverId) ?: throw IllegalArgumentException("Receiver not found")
-        val conversation = ConversationDAO.findById(model.conversationId) ?: throw IllegalArgumentException("Conversation not found")
+        transaction {
+            val sender = UserDAO.findById(model.senderId) ?: throw IllegalArgumentException("Sender not found")
+            val receiver = UserDAO.findById(model.receiverId) ?: throw IllegalArgumentException("Receiver not found")
+            println(model.conversationId)
+            val conversation = ConversationDAO.findById(model.conversationId) ?: throw IllegalArgumentException("Conversation not found")
 
-        MessageDAO.new {
-            this.sender = sender
-            this.receiver = receiver
-            this.content = model.content
-            this.createdAt = Instant.parse(model.createdAt)
-            this.conversation = conversation
-            this.isSystemMessage = model.isSystemMessage
+            MessageDAO.new {
+                this.sender = sender
+                this.receiver = receiver
+                this.content = model.content
+                this.createdAt = Clock.System.now()
+                this.conversation = conversation
+                this.isSystemMessage = model.isSystemMessage
+            }
         }
     }
 
