@@ -15,9 +15,7 @@ fun Application.configureCommentRoutes() {
 
     routing {
         post("/comments") {
-            val userId = call.principal<UserIdPrincipal>()?.name?.toIntOrNull()
-                ?: return@post call.respond(HttpStatusCode.Unauthorized, "Token invalide")
-            val commentDTO = call.receive<CommentDTO>().copy(authorId = userId)
+            val commentDTO = call.receive<CommentDTO>()
             val id = commentService.create(commentDTO)
 
             val newComment = commentService.read(id)
@@ -29,8 +27,6 @@ fun Application.configureCommentRoutes() {
             }
         }
 
-
-        // 🔹 Récupérer les commentaires d'une vidéo avec les auteurs
         get("/comments/video/{videoId}") {
             val videoId = call.parameters["videoId"]?.toIntOrNull()
                 ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid video ID")
@@ -39,8 +35,6 @@ fun Application.configureCommentRoutes() {
             call.respond(HttpStatusCode.OK, comments)
         }
 
-
-        // 🔹 Récupérer un commentaire par son ID
         get("/comments/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
                 ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid comment ID")
@@ -53,7 +47,6 @@ fun Application.configureCommentRoutes() {
             }
         }
 
-        // 🔹 Mettre à jour un commentaire
         put("/comments/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
                 ?: return@put call.respond(HttpStatusCode.BadRequest, "Invalid comment ID")
@@ -63,7 +56,6 @@ fun Application.configureCommentRoutes() {
             call.respond(HttpStatusCode.OK, "Comment updated successfully")
         }
 
-        // 🔹 Supprimer un commentaire
         delete("/comments/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
                 ?: return@delete call.respond(HttpStatusCode.BadRequest, "Invalid comment ID")

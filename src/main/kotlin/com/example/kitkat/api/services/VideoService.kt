@@ -10,6 +10,7 @@ import com.example.kitkat.api.models.tables.Videos
 import kotlinx.coroutines.Dispatchers
 import kotlinx.datetime.Instant
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -28,6 +29,7 @@ class VideoService(private val database: Database) {
             author = UserDAO.findById(videoDTO.authorId) ?: throw IllegalArgumentException("Author not found")
             videoUrl = videoDTO.videoUrl
             viewCount = videoDTO.viewCount
+            thumbnailUrl = videoDTO.thumbnailUrl
             likeCount = videoDTO.likeCount
             commentCount = videoDTO.commentCount
             createdAt = Instant.parse(videoDTO.createdAt) // Conversion String -> Instant
@@ -43,6 +45,7 @@ class VideoService(private val database: Database) {
                 duration = it.duration,
                 authorId = it.author.id.value,
                 videoUrl = it.videoUrl,
+                thumbnailUrl = it.thumbnailUrl,
                 viewCount = it.viewCount,
                 likeCount = it.likeCount,
                 commentCount = it.commentCount,
@@ -51,6 +54,25 @@ class VideoService(private val database: Database) {
             )
         }
     }
+    suspend fun getVideosByAuthor(authorId: Int): List<VideoDTO> = dbQuery {
+        Videos.selectAll().where { Videos.author eq authorId }
+            .map { row ->
+                VideoDTO(
+                    id = row[Videos.id].value,
+                    title = row[Videos.title],
+                    duration = row[Videos.duration],
+                    authorId = row[Videos.author].value,
+                    videoUrl = row[Videos.videoUrl],
+                    thumbnailUrl = row[Videos.thumbnailUrl],
+                    viewCount = row[Videos.viewCount],
+                    likeCount = row[Videos.likeCount],
+                    commentCount = row[Videos.commentCount],
+                    createdAt = row[Videos.createdAt].toString(),
+                    isPublic = row[Videos.isPublic]
+                )
+            }
+    }
+
     suspend fun getAllVideosWithAuthors(): List<Pair<VideoDTO, UserWithoutPasswordDTO>> = dbQuery {
         Videos.innerJoin(Users).selectAll().map { row ->
             val video = VideoDTO(
@@ -59,6 +81,7 @@ class VideoService(private val database: Database) {
                 duration = row[Videos.duration],
                 authorId = row[Videos.author].value,
                 videoUrl = row[Videos.videoUrl],
+                thumbnailUrl = row[Videos.thumbnailUrl],
                 viewCount = row[Videos.viewCount],
                 likeCount = row[Videos.likeCount],
                 commentCount = row[Videos.commentCount],
