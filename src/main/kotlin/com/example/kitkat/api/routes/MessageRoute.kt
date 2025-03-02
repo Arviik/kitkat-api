@@ -8,6 +8,9 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Application.configureMessageRoutes(repository: MessageRepository) {
     routing {
@@ -48,7 +51,7 @@ fun Application.configureMessageRoutes(repository: MessageRepository) {
                 try {
                     val message = call.receive<MessageDTO>()
                     repository.add(message)
-                    call.respond(HttpStatusCode.NoContent)
+                    call.respond(HttpStatusCode.Created)
                 } catch (ex: IllegalStateException) {
                     println(ex.message)
                     call.respond(HttpStatusCode.BadRequest)
