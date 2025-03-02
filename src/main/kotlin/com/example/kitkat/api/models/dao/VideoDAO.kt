@@ -12,6 +12,7 @@ class VideoDAO(id: EntityID<Int>) : IntEntity(id) {
     var duration by Videos.duration
     var author by UserDAO referencedOn Videos.author
     var videoUrl by Videos.videoUrl
+    var thumbnailUrl by Videos.thumbnailUrl
     var viewCount by Videos.viewCount
     var likeCount by Videos.likeCount
     var commentCount by Videos.commentCount

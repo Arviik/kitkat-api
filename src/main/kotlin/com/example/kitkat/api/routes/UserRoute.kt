@@ -1,8 +1,6 @@
 package com.example.kitkat.api.routes
 
 import com.example.kitkat.api.services.UserService
-import com.example.kitkat.api.config.Config
-import com.example.kitkat.api.models.dao.UserDAO
 import com.example.kitkat.api.models.dataclass.UserDTO
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -13,9 +11,9 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.routing
-import kotlin.text.toInt
+
 fun Application.configureUserRoutes() {
-    val userService = UserService(com.example.kitkat.api.config.Config.database)
+    val userService = UserService()
 
     routing {
         post("/users") {

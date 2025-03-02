@@ -14,10 +14,10 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class UserService(private val database: Database) {
+class UserService() {
 
     init {
-        transaction(database) {
+        transaction() {
             SchemaUtils.create(Users)
         }
     }
@@ -170,7 +170,7 @@ class UserService(private val database: Database) {
     }
 
     private suspend fun <T> dbQuery(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO, database) { block() }
+        newSuspendedTransaction(Dispatchers.IO) { block() }
 
     private fun hashPassword(password: String): String {
         return BCrypt.withDefaults().hashToString(12, password.toCharArray())

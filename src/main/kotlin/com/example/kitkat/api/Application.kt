@@ -1,5 +1,6 @@
 package com.example.kitkat.api
 
+import com.example.kitkat.api.config.AppConfig
 import com.example.kitkat.api.config.configureDatabases
 import com.example.kitkat.api.config.configureRouting
 import com.example.kitkat.api.config.configureSecurity
@@ -11,6 +12,8 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
+    AppConfig.application = this
+
     configureSecurity()
     configureSerialization()
     configureDatabases()

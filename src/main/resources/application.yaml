@@ -3,4 +3,14 @@ ktor:
     modules:
       - com.example.kitkat.api.ApplicationKt.module
   deployment:
-    port: 8080
+    port: $API_PORT
+database:
+  url: $DATABASE_URL
+  user: $DATABASE_USER
+  driver: $DATABASE_DRIVER
+  password: $DATABASE_PASSWORD
+jwt:
+  secret: $SECRET
+  issuer: $ISSUER
+  audience: $AUDIENCE
+  realm: $REALM

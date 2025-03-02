@@ -9,13 +9,15 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.respond
 
 fun Application.configureSecurity() {
+    val env = environment.config
+
     install(Authentication) {
         jwt("auth-jwt") {
-            realm = Config.REALM
+            realm = env.property("jwt.realm").getString()
             verifier(JWT
-                .require(Algorithm.HMAC256(Config.SECRET))
-                .withAudience(Config.AUDIENCE)
-                .withIssuer(Config.ISSUER)
+                .require(Algorithm.HMAC256(env.property("jwt.secret").getString()))
+                .withAudience(env.property("jwt.audience").getString())
+                .withIssuer(env.property("jwt.issuer").getString())
                 .build())
             validate { credential ->
                 if (credential.payload.getClaim("username").asString() != "") {
