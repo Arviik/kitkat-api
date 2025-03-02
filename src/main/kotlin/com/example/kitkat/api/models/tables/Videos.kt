@@ -8,6 +8,7 @@ object Videos : IntIdTable() {
     val duration = integer("duration")
     val author = reference("user", Users)
     val videoUrl = text("video_url")
+    val thumbnailUrl = text("thumbnail_url")
     val viewCount = integer("view_count")
     val likeCount = integer("like_count")
     val commentCount = integer("comment_count")

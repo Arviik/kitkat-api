@@ -9,6 +9,7 @@ data class VideoDTO(
     val duration: Int,
     val authorId: Int,
     val videoUrl: String,
+    val thumbnailUrl: String,
     val viewCount: Int = 0,
     val likeCount: Int = 0,
     val commentCount: Int = 0,

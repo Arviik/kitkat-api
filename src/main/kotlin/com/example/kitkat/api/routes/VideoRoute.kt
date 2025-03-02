@@ -35,6 +35,15 @@ fun Application.configureVideoRoutes() {
                 call.respond(HttpStatusCode.NotFound)
             }
         }
+        get("/videos/author/{authorId}") {
+            val authorId = call.parameters["authorId"]?.toIntOrNull()
+            if (authorId == null) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid author ID")
+            } else {
+                val videos = videoService.getVideosByAuthor(authorId)
+                call.respond(HttpStatusCode.OK, videos)
+            }
+        }
 
         put("/videos/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
