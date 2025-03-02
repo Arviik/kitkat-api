@@ -35,6 +35,8 @@ fun Application.configureUserRoutes() {
                 call.respond(HttpStatusCode.NotFound)
             }
         }
+        authenticate("auth-jwt") {
+
         put("/users/update-profile-picture") {
             val principal = call.principal<JWTPrincipal>()
                 ?: return@put call.respond(HttpStatusCode.Unauthorized, "Token invalide")
@@ -46,8 +48,9 @@ fun Application.configureUserRoutes() {
 
             transaction {
                 val user = UserDAO.findById(userId)
+
                 if (user != null) {
-                    user.profilePictureUrl = imageUrl
+                    user.profilePictureUrl = imageUrl.trim('"')
                     success = true
                 }
             }
@@ -57,6 +60,7 @@ fun Application.configureUserRoutes() {
             } else {
                 call.respond(HttpStatusCode.NotFound, "Utilisateur introuvable")
             }
+        }
         }
 
 
